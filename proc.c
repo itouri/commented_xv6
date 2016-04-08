@@ -153,10 +153,16 @@ fork(void)
     if(proc->ofile[i])
       np->ofile[i] = filedup(proc->ofile[i]);
   np->cwd = idup(proc->cwd);
+
+  safestrcpy(np->name, proc->name, sizeof(proc->name));
  
   pid = np->pid;
+
+  // lock to force the compiler to emit the np->state write last.
+  acquire(&ptable.lock);
   np->state = RUNNABLE;
-  safestrcpy(np->name, proc->name, sizeof(proc->name));
+  release(&ptable.lock);
+  
   return pid;
 }
 
@@ -180,7 +186,9 @@ exit(void)
     }
   }
 
+  begin_op();
   iput(proc->cwd);
+  end_op();
   proc->cwd = 0;
 
   acquire(&ptable.lock);
@@ -331,7 +339,8 @@ forkret(void)
     // of a regular process (e.g., they call sleep), and thus cannot 
     // be run from main().
     first = 0;
-    initlog();
+    iinit(ROOTDEV);
+    initlog(ROOTDEV);
   }
   
   // Return to "caller", actually trapret (see allocproc).
@@ -455,5 +464,3 @@ procdump(void)
     cprintf("\n");
   }
 }
-
-
