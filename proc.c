@@ -7,6 +7,7 @@
 #include "proc.h"
 #include "spinlock.h"
 
+//プロセスのテーブル?
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
@@ -37,19 +38,24 @@ allocproc(void)
   struct proc *p;
   char *sp;
 
+  //ロックを取得してる 詳しくはわからない
   acquire(&ptable.lock);
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+    //プロセステーブルに空きをみつけた!
     if(p->state == UNUSED)
       goto found;
+  //ロック解除
   release(&ptable.lock);
+  //見つからなかった
   return 0;
 
 found:
-  p->state = EMBRYO;
-  p->pid = nextpid++;
+  p->state = EMBRYO; //何？EMBRYOって
+  p->pid = nextpid++; //最初は1 killしたらどーなるの?
   release(&ptable.lock);
 
   // Allocate kernel stack.
+  //kalloc()はkmem
   if((p->kstack = kalloc()) == 0){
     p->state = UNUSED;
     return 0;
@@ -136,7 +142,9 @@ fork(void)
     return -1;
 
   // Copy process state from p.
+  //ページテーブルを子プロセスにコピー
   if((np->pgdir = copyuvm(proc->pgdir, proc->sz)) == 0){
+    //割り当てたのを取り消してる
     kfree(np->kstack);
     np->kstack = 0;
     np->state = UNUSED;
@@ -147,8 +155,10 @@ fork(void)
   *np->tf = *proc->tf;
 
   // Clear %eax so that fork returns 0 in the child.
+  //返り値を0にしたい?なんの関数の返り値?
   np->tf->eax = 0;
 
+  //ofile,cwdを親から子へコピーしてるけどそもそもなんなのか分かんない
   for(i = 0; i < NOFILE; i++)
     if(proc->ofile[i])
       np->ofile[i] = filedup(proc->ofile[i]);
