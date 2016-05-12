@@ -54,8 +54,9 @@ enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 
 // Per-process state
 struct proc {
+  //ユーザースタックのアドレス空間は指定しないの? 
   uint sz;                     // Size of process memory (bytes)
-  pde_t* pgdir;                // Page table
+  pde_t* pgdir;                // Page table ページングの機構がつかうらしい
   char *kstack;                // Bottom of kernel stack for this process
   enum procstate state;        // Process state
   int pid;                     // Process ID
