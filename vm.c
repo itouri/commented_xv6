@@ -70,7 +70,7 @@ walkpgdir(pde_t *pgdir, const void *va, int alloc)
 static int
 mappages(pde_t *pgdir, void *va, uint size, uint pa, int perm)
 {
-  char *a, *last;
+  char *a, *last; //a=アドレス last
   pte_t *pte;
   
   a = (char*)PGROUNDDOWN((uint)va);
@@ -136,6 +136,8 @@ setupkvm(void)
   if((pgdir = (pde_t*)kalloc()) == 0)
     return 0;
   memset(pgdir, 0, PGSIZE);
+
+
   if (p2v(PHYSTOP) > (void*)DEVSPACE)
     panic("PHYSTOP too high");
   for(k = kmap; k < &kmap[NELEM(kmap)]; k++)
@@ -147,6 +149,7 @@ setupkvm(void)
 
 // Allocate one page table for the machine for the kernel address
 // space for scheduler processes.
+//ここでしか使われてない
 void
 kvmalloc(void)
 {
@@ -166,7 +169,8 @@ switchkvm(void)
 void
 switchuvm(struct proc *p)
 {
-  pushcli();
+  //TSSについては第2章で説明だってさ
+  pushcli(); //割り込み禁止? 普通にcli()しない理由がきっとある
   cpu->gdt[SEG_TSS] = SEG16(STS_T32A, &cpu->ts, sizeof(cpu->ts)-1, 0);
   cpu->gdt[SEG_TSS].s = 0;
   cpu->ts.ss0 = SEG_KDATA << 3;

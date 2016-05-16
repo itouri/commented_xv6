@@ -106,24 +106,26 @@ userinit(void)
   //さらに最初のprocへのinitが続く
   if((p->pgdir = setupkvm()) == 0)
     panic("userinit: out of memory?");
+  //inituvm→物理メモリのページを割りあて，仮想アドレス0にマッピングする
   //init(pid==1)にしかないinitcode.Sからプロセスの中身のコピー
   inituvm(p->pgdir, _binary_initcode_start, (int)_binary_initcode_size);
   p->sz = PGSIZE;//4096固定
   memset(p->tf, 0, sizeof(*p->tf));
 
-  //initのtrapframeのレジスタの設定
+  //initのtrapframeのレジスタの設定 イマイチ数字の理由がよくわからん
   p->tf->cs = (SEG_UCODE << 3) | DPL_USER; //SEG_UCODE = 4 DPL_USER = 0x3
     //   cs = 0100 | 0011 = 0111
   p->tf->ds = (SEG_UDATA << 3) | DPL_USER; //SEG_UDATA = 5 //user data + stack
     //   ds = 0101 | 0011 = 0111
   p->tf->es = p->tf->ds;
   p->tf->ss = p->tf->ds;
-  p->tf->eflags = FL_IF; //intterapte enable
+  p->tf->eflags = FL_IF; //FL_IF = intterapte enable
   p->tf->esp = PGSIZE;
   p->tf->eip = 0;  // beginning of initcode.S
 
+  //だたp->nameに"initcode"設定しているだけ
   safestrcpy(p->name, "initcode", sizeof(p->name));
-  p->cwd = namei("/");
+  p->cwd = namei("/"); //第6章
 
   p->state = RUNNABLE;
 }
@@ -303,6 +305,7 @@ scheduler(void)
 
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
+    //RUNNABLEなプロセスを探して....
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state != RUNNABLE)
         continue;
