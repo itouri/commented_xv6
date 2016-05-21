@@ -18,7 +18,7 @@ exec(char *path, char **argv)
   struct proghdr ph;
   pde_t *pgdir, *oldpgdir;
 
-  begin_op();
+  begin_op();//ログを取ってるらしい
   if((ip = namei(path)) == 0){
     end_op();
     return -1;
@@ -27,7 +27,9 @@ exec(char *path, char **argv)
   pgdir = 0;
 
   // Check ELF header
-  if(readi(ip, (char*)&elf, 0, sizeof(elf)) < sizeof(elf))
+  //Read date from inode だってさ
+  //? 下のif文はなにを図ってるの?
+  if(readi(ip, (char*)&elf, 0, sizeof(elf) ) < sizeof(elf))
     goto bad;
   if(elf.magic != ELF_MAGIC)
     goto bad;
@@ -36,6 +38,7 @@ exec(char *path, char **argv)
     goto bad;
 
   // Load program into memory.
+  //pdfの方には下の処理に関する記述が一切ない
   sz = 0;
   for(i=0, off=elf.phoff; i<elf.phnum; i++, off+=sizeof(ph)){
     if(readi(ip, (char*)&ph, off, sizeof(ph)) != sizeof(ph))
@@ -58,14 +61,18 @@ exec(char *path, char **argv)
   sz = PGROUNDUP(sz);
   if((sz = allocuvm(pgdir, sz, sz + 2*PGSIZE)) == 0)
     goto bad;
+
   clearpteu(pgdir, (char*)(sz - 2*PGSIZE));
   sp = sz;
 
   // Push argument strings, prepare rest of stack in ustack.
   for(argc = 0; argv[argc]; argc++) {
     if(argc >= MAXARG)
-      goto bad;
+      goto bad; //引数多すぎぃ!
+    //スタックの領域を確保してる
+    //                             \0の分
     sp = (sp - (strlen(argv[argc]) + 1)) & ~3;
+    //                sp ← argv[argc] の方向でコピー
     if(copyout(pgdir, sp, argv[argc], strlen(argv[argc]) + 1) < 0)
       goto bad;
     ustack[3+argc] = sp;

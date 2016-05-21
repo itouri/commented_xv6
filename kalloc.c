@@ -61,6 +61,9 @@ kfree(char *v)
 {
   struct run *r;
 
+  //vが4096でround upされてない
+  //end(カーネルをELFから読んだ後の最初のアドレス)
+  //物理メモリアドレスが頂点を超えてる
   if((uint)v % PGSIZE || v < end || v2p(v) >= PHYSTOP)
     panic("kfree");
 
@@ -69,6 +72,7 @@ kfree(char *v)
 
   if(kmem.use_lock)
     acquire(&kmem.lock);
+  //なんだ?この書き方
   r = (struct run*)v;
   r->next = kmem.freelist;
   kmem.freelist = r;
