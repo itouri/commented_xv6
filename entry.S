@@ -33,12 +33,14 @@ multiboot_header:
 # By convention, the _start symbol specifies the ELF entry point.
 # Since we haven't set up virtual memory yet, our entry point is
 # the physical address of 'entry'.
+	#entryの場所を仮想アドレスの場所(0x8000_0000以上)に設定するのではなく、無理矢理0x0000_0000の付近に設定している。
 .globl _start
 _start = V2P_WO(entry)
 
 # Entering xv6 on boot processor, with paging off.
 .globl entry
 entry:
+	#ここでページングをONにしてるんだってさ
   # Turn on page size extension for 4Mbyte pages
   movl    %cr4, %eax
   orl     $(CR4_PSE), %eax

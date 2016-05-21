@@ -28,6 +28,7 @@ struct inode {
 
 // table mapping major device number to
 // device functions
+// なにこの書き方....
 struct devsw {
   int (*read)(struct inode*, char*, int);
   int (*write)(struct inode*, char*, int);
@@ -35,6 +36,7 @@ struct devsw {
 
 extern struct devsw devsw[];
 
+//なんの意味が?
 #define CONSOLE 1
 
 //PAGEBREAK!

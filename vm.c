@@ -49,7 +49,7 @@ walkpgdir(pde_t *pgdir, const void *va, int alloc)
   pte_t *pgtab;
 
   pde = &pgdir[PDX(va)];
-  if(*pde & PTE_P){
+  if(*pde & PTE_P){ //そのページが存在してるなら
     pgtab = (pte_t*)p2v(PTE_ADDR(*pde));
   } else {
     if(!alloc || (pgtab = (pte_t*)kalloc()) == 0)
@@ -66,7 +66,7 @@ walkpgdir(pde_t *pgdir, const void *va, int alloc)
 
 // Create PTEs for virtual addresses starting at va that refer to
 // physical addresses starting at pa. va and size might not
-// be page-aligned.
+// be page-aligcned.
 static int
 mappages(pde_t *pgdir, void *va, uint size, uint pa, int perm)
 {
