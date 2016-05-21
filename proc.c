@@ -32,6 +32,15 @@ pinit(void)
 // If found, change state to EMBRYO and initialize
 // state required to run in the kernel.
 // Otherwise return 0.
+/*
+  UNUSEDなプロセスをptableからforで線形探索
+  if(みつけた) goto found;
+  else return 0;
+
+  found:
+  
+  
+*/
 static struct proc*
 allocproc(void)
 {
@@ -50,8 +59,8 @@ allocproc(void)
   return 0;
 
 found:
-  p->state = EMBRYO; //何？EMBRYOって
-  p->pid = nextpid++; //最初は1 killしたらどーなるの?
+  p->state = EMBRYO; //EMBRYOは初期
+  p->pid = nextpid++; //最初は1 killしたらどーなるの? ただ足していくだけなのか...
   release(&ptable.lock);
 
   // Allocate kernel stack.
@@ -60,21 +69,24 @@ found:
     p->state = UNUSED;
     return 0;
   }
-  sp = p->kstack + KSTACKSIZE;
+
+  //spは現状カーネルスタックの頂点のアドレス
+  sp = p->kstack + KSTACKSIZE;//KSTACISIZE = 4096
   
   // Leave room for trap frame.
+  //カーネルスタックの頂点 - trapframe構造体のサイズ  
   sp -= sizeof *p->tf;
   p->tf = (struct trapframe*)sp;
   
   // Set up new context to start executing at forkret,
   // which returns to trapret.
   sp -= 4;
-  *(uint*)sp = (uint)trapret;
+  *(uint*)sp = (uint)trapret; //なんだtrapretって関数か?
 
   sp -= sizeof *p->context;
-  p->context = (struct context*)sp;
+  p->context = (struct context*)sp; //p->contextのメモリアドレスを配置
   memset(p->context, 0, sizeof *p->context);
-  p->context->eip = (uint)forkret;
+  p->context->eip = (uint)forkret; //（カーネル?）スタックの底辺に格納されているアドレスに戻る
 
   return p;
 }
@@ -87,24 +99,33 @@ userinit(void)
   struct proc *p;
   extern char _binary_initcode_start[], _binary_initcode_size[];
   
+  //いろいろ初期化が終わったprocがかえってくる
   p = allocproc();
   initproc = p;
+
+  //さらに最初のprocへのinitが続く
   if((p->pgdir = setupkvm()) == 0)
     panic("userinit: out of memory?");
-  //initcodeを割り当てるんだっけ?
+  //inituvm→物理メモリのページを割りあて，仮想アドレス0にマッピングする
+  //init(pid==1)にしかないinitcode.Sからプロセスの中身のコピー
   inituvm(p->pgdir, _binary_initcode_start, (int)_binary_initcode_size);
-  p->sz = PGSIZE;
+  p->sz = PGSIZE;//4096固定
   memset(p->tf, 0, sizeof(*p->tf));
-  p->tf->cs = (SEG_UCODE << 3) | DPL_USER;
-  p->tf->ds = (SEG_UDATA << 3) | DPL_USER;
+
+  //initのtrapframeのレジスタの設定 イマイチ数字の理由がよくわからん
+  p->tf->cs = (SEG_UCODE << 3) | DPL_USER; //SEG_UCODE = 4 DPL_USER = 0x3
+    //   cs = 0100 | 0011 = 0111
+  p->tf->ds = (SEG_UDATA << 3) | DPL_USER; //SEG_UDATA = 5 //user data + stack
+    //   ds = 0101 | 0011 = 0111
   p->tf->es = p->tf->ds;
   p->tf->ss = p->tf->ds;
-  p->tf->eflags = FL_IF;
+  p->tf->eflags = FL_IF; //FL_IF = intterapte enable
   p->tf->esp = PGSIZE;
   p->tf->eip = 0;  // beginning of initcode.S
 
+  //だたp->nameに"initcode"設定しているだけ
   safestrcpy(p->name, "initcode", sizeof(p->name));
-  p->cwd = namei("/");
+  p->cwd = namei("/"); //第6章
 
   p->state = RUNNABLE;
 }
@@ -280,11 +301,11 @@ scheduler(void)
 
   for(;;){
     // Enable interrupts on this processor.
-    //ここでようやくbootasm.Sのcliが解除される?
     sti();
 
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
+    //RUNNABLEなプロセスを探して....
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state != RUNNABLE)
         continue;
