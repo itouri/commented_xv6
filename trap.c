@@ -36,6 +36,8 @@ idtinit(void)
 void
 trap(struct trapframe *tf)
 {
+  //? kapiceoi()ってなんだっけ
+  //tf->trapnoで分岐
   if(tf->trapno == T_SYSCALL){
     if(proc->killed)
       exit();

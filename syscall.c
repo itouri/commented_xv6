@@ -45,6 +45,7 @@ fetchstr(uint addr, char **pp)
 int
 argint(int n, int *ip)
 {
+  //ここが大事
   return fetchint(proc->tf->esp + 4 + 4*n, ip);
 }
 

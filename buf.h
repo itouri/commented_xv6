@@ -1,7 +1,8 @@
+//ディスクセクタの構造体
 struct buf {
   int flags;
-  uint dev;
-  uint blockno;
+  uint dev; //deviceの番号
+  uint blockno; //blockの番号
   struct buf *prev; // LRU cache list
   struct buf *next;
   struct buf *qnext; // disk queue
