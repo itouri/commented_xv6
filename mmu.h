@@ -110,7 +110,7 @@ struct segdesc {
 //  \--- PDX(va) --/ \--- PTX(va) --/ 
 
 // page directory index
-#define PDX(va)         (((uint)(va) >> PDXSHIFT) & 0x3FF)
+#define PDX(va)         (((uint)(va) >> PDXSHIFT) & 0x3FF) // 0x3FF = 0011_1111_1111
 
 // page table index
 #define PTX(va)         (((uint)(va) >> PTXSHIFT) & 0x3FF)
