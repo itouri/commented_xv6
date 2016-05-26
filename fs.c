@@ -431,6 +431,7 @@ stati(struct inode *ip, struct stat *st)
 
 //PAGEBREAK!
 // Read data from inode.
+//とりあえず無視 6章のファイルシステムに期待
 int
 readi(struct inode *ip, char *dst, uint off, uint n)
 {

@@ -39,6 +39,7 @@
 
 #define CR4_PSE         0x00000010      // Page size extension
 
+//なんの数字なんだ? bootasm.Sでは $(SEG_KCODE<<3) ってな感じで使ってるけど
 #define SEG_KCODE 1  // kernel code
 #define SEG_KDATA 2  // kernel data+stack
 #define SEG_KCPU  3  // kernel per-cpu data

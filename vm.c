@@ -49,9 +49,10 @@ walkpgdir(pde_t *pgdir, const void *va, int alloc)
   pte_t *pgtab;
 
   pde = &pgdir[PDX(va)];
-  if(*pde & PTE_P){
+  if(*pde & PTE_P){ //そのページが存在してるなら
     pgtab = (pte_t*)p2v(PTE_ADDR(*pde));
   } else {
+                          //kalloc() = 0 ってどんなとき?
     if(!alloc || (pgtab = (pte_t*)kalloc()) == 0)
       return 0;
     // Make sure all those PTE_P bits are zero.
@@ -66,7 +67,7 @@ walkpgdir(pde_t *pgdir, const void *va, int alloc)
 
 // Create PTEs for virtual addresses starting at va that refer to
 // physical addresses starting at pa. va and size might not
-// be page-aligned.
+// be page-aligcned.
 static int
 mappages(pde_t *pgdir, void *va, uint size, uint pa, int perm)
 {
@@ -199,6 +200,7 @@ inituvm(pde_t *pgdir, char *init, uint sz)
 
 // Load a program segment into pgdir.  addr must be page-aligned
 // and the pages from addr to addr+sz must already be mapped.
+//
 int
 loaduvm(pde_t *pgdir, char *addr, struct inode *ip, uint offset, uint sz)
 {
@@ -207,6 +209,7 @@ loaduvm(pde_t *pgdir, char *addr, struct inode *ip, uint offset, uint sz)
 
   if((uint) addr % PGSIZE != 0)
     panic("loaduvm: addr must be page aligned");
+  
   for(i = 0; i < sz; i += PGSIZE){
     if((pte = walkpgdir(pgdir, addr+i, 0)) == 0)
       panic("loaduvm: address should exist");
@@ -360,6 +363,7 @@ uva2ka(pde_t *pgdir, char *uva)
 // Copy len bytes from p to user address va in page table pgdir.
 // Most useful when pgdir is not the current page table.
 // uva2ka ensures this only works for PTE_U pages.
+// p → va
 int
 copyout(pde_t *pgdir, uint va, void *p, uint len)
 {
