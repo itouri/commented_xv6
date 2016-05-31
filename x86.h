@@ -167,8 +167,9 @@ struct trapframe {
   ushort padding3;
   ushort ds;
   ushort padding4;
-  uint trapno;
+  uint trapno; //vectors.Sによりプッシュ
 
+  //ここより下の処理はソースコードにはない?
   // below here defined by x86 hardware
   uint err;
   uint eip;

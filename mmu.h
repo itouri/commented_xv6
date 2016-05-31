@@ -191,6 +191,7 @@ struct taskstate {
 
 // PAGEBREAK: 12
 // Gate descriptors for interrupts and traps
+//http://softwaretechnique.jp/OS_Development/kernel_development02.html
 struct gatedesc {
   uint off_15_0 : 16;   // low 16 bits of offset in segment
   uint cs : 16;         // code segment selector
