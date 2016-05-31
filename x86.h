@@ -172,6 +172,8 @@ struct trapframe {
   //ここより下の処理はソースコードにはない?
   // below here defined by x86 hardware
   uint err;
+
+  //int命令によりセット
   uint eip;
   ushort cs;
   ushort padding5;

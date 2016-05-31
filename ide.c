@@ -50,8 +50,8 @@ ideinit(void)
   int i;
   
   initlock(&idelock, "ide");
-  picenable(IRQ_IDE);
-  ioapicenable(IRQ_IDE, ncpu - 1);
+  picenable(IRQ_IDE); //単一プロセッサの割り込みを有効化
+  ioapicenable(IRQ_IDE, ncpu - 1); //マルチプロセッサの割り込みを有効化
   idewait(0);
   
   // Check if disk 1 is present
@@ -68,6 +68,7 @@ ideinit(void)
 }
 
 // Start the request for b.  Caller must hold idelock.
+//バッファのデバイスとセクタに対して、フラグに応じて読み込みまたは書き込みを発行
 static void
 idestart(struct buf *b)
 {
@@ -89,7 +90,7 @@ idestart(struct buf *b)
   outb(0x1f6, 0xe0 | ((b->dev&1)<<4) | ((sector>>24)&0x0f));
   if(b->flags & B_DIRTY){
     outb(0x1f7, IDE_CMD_WRITE);
-    outsl(0x1f0, b->data, BSIZE/4);
+    outsl(0x1f0, b->data, BSIZE/4); //ここで値を書き込んでいるらしい
   } else {
     outb(0x1f7, IDE_CMD_READ);
   }
@@ -146,12 +147,13 @@ iderw(struct buf *b)
 
   // Append b to idequeue.
   b->qnext = 0;
+  //                ↓?
   for(pp=&idequeue; *pp; pp=&(*pp)->qnext)  //DOC:insert-queue
     ;
   *pp = b;
   
   // Start disk if necessary.
-  if(idequeue == b)
+  if(idequeue == b) //idequeueがからっぽだった
     idestart(b);
   
   // Wait for request to finish.
