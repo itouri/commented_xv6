@@ -209,7 +209,7 @@ exit(void)
 
   // Pass abandoned children to init.
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-    if(p->parent == proc){
+    if(p->parent == proc){ //exitしようとしてるプロセスの子はすべて親をinitにする
       p->parent = initproc;
       if(p->state == ZOMBIE)
         wakeup1(initproc);
@@ -411,7 +411,7 @@ wakeup1(void *chan)
 }
 
 // Wake up all processes sleeping on chan.
-void
+void  //↓引数voidってどういうこと?
 wakeup(void *chan)
 {
   acquire(&ptable.lock);
