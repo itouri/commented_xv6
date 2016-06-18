@@ -87,6 +87,7 @@ bget(uint dev, uint blockno)
     if((b->flags & B_BUSY) == 0 && (b->flags & B_DIRTY) == 0){
       b->dev = dev;
       b->blockno = blockno;
+      //実はorじゃないのでDIRTYやVALIDのフラグを消してる
       b->flags = B_BUSY;
       release(&bcache.lock);
       return b;
